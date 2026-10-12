@@ -1,0 +1,19 @@
+# accelerate config: DeepSpeed ZeRO-2, used for Stage A (the full-weight DINO
+# mergers do not train correctly under ZeRO-3). Stage B uses accelerate_z3.yaml.
+# scripts/train.py runs from the repo root, so the relative
+# deepspeed_config_file path resolves; it also passes --num_processes
+# explicitly (the value below is a placeholder). Multi-node: copy this file,
+# set num_machines / machine_rank / main_process_ip and pass it as
+# `python scripts/train.py --accel <file>` on every node.
+compute_environment: LOCAL_MACHINE
+distributed_type: DEEPSPEED
+deepspeed_config:
+  deepspeed_config_file: configs/ds_zero2.json
+  zero3_init_flag: false
+machine_rank: 0
+main_training_function: main
+num_machines: 1
+num_processes: 1
+rdzv_backend: static
+same_network: true
+use_cpu: false

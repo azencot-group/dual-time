@@ -1,0 +1,64 @@
+# Stage B: instruction-tune the language model (LoRA) on top of the merged Stage A prior.
+# Paths are relative to the repository root.
+model_path: artifacts/models/Qwen3-VL-8B-Instruct
+output_dir: artifacts/checkpoints/stageB_dual8b
+
+unified_sources:                  # the reasoning corpus is listed twice: JSON-rationale target (cot) and bare-letter target
+  - {type: chatts, subset: ift}                                                                          # 6,373
+  - {type: chatts, subset: sft}                                                                          # 44,802
+  - {type: tsexam_perception, path: data/stageB/tsexam_perception.json, shuffle_options: true}   # 20,640
+  - {type: numerical_corpus,  path: data/stageB/numerical_corpus.json}                           # 11,000
+  - {type: reasoning_corpus,  path: data/stageB/reasoning_corpus.json, target_format: cot,       task_tag: reasoning_rationale, reasoning_task: [NR, EP, IR], shuffle_options: true}
+  - {type: reasoning_corpus,  path: data/stageB/reasoning_corpus.json, target_format: letter, task_tag: reasoning_mcq, reasoning_task: [CD, ER, TSF, AR, DR, TR], shuffle_options: true}
+balance_mode: weighted_even_src   # equal share per source bucket per epoch
+bucket_repetition: {reasoning_rationale: 1.0, reasoning_mcq: 1.0, numerical_corpus: 1.0}   # pinned: exactly one pass per epoch
+chart_style: v2
+
+resume_adapter: artifacts/checkpoints/stageA_dual8b/best   # Stage A prior, merged into the base before training
+resume_mode: merge
+
+# --- dual tower ---
+dino_model_id: facebook/dinov3-vitl16-pretrain-lvd1689m
+dino_image_size: 256
+dino_patch_size: 16
+dino_spatial_merge_size: 2
+dino_deepstack_indexes: [6, 12, 18]
+dino_freeze_backbone: true
+dino_global_norm: false
+dino_lora_on_backbone: false
+dino_lora_on_lm: true
+dino_freeze_merger: true
+attn_implementation: flash_attention_2   # sdpa if flash-attn is unavailable
+
+max_length: 8192
+
+# --- LoRA ---
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+freeze_vision: true
+
+# --- optimisation ---
+num_train_epochs: 2
+global_batch_size: 64            # examples per optimizer step; scripts/train.py derives gradient_accumulation_steps
+per_device_train_batch_size: 8   # from it and the GPU count (the paper's runs: 8 x 4 x 2 GPUs)
+gradient_accumulation_steps: 4
+dataloader_num_workers: 8
+learning_rate: 3.0e-4
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+weight_decay: 0.0
+gradient_checkpointing: true
+gc_use_reentrant: true           # as in the reference run (only the LM LoRA trains, so safe here)
+bf16: true
+logging_steps: 10
+
+# --- checkpointing ---
+save_strategy: steps
+save_steps: 714
+save_only_model: false           # full (resumable) checkpoints
+rolling_checkpoints: true        # keep only the newest keep_full_checkpoints ...
+keep_full_checkpoints: 2
+keep_epoch_adapters: true        # ... plus an adapter-only snapshot nearest each epoch end (checkpoint-2856, checkpoint-5714)
+seed: 42

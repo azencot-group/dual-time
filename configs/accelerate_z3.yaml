@@ -1,0 +1,15 @@
+# accelerate config: DeepSpeed ZeRO-3 (Stage B). scripts/train.py runs from
+# the repo root, so the relative deepspeed_config_file path resolves; it also
+# passes --num_processes explicitly (the value below is a placeholder).
+compute_environment: LOCAL_MACHINE
+distributed_type: DEEPSPEED
+deepspeed_config:
+  deepspeed_config_file: configs/ds_zero3.json
+  zero3_init_flag: true
+machine_rank: 0
+main_training_function: main
+num_machines: 1
+num_processes: 1
+rdzv_backend: static
+same_network: true
+use_cpu: false

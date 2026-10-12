@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Local environment
+.venv/
+
+# Heavy artifacts (base model, checkpoints) - never in git
+artifacts/
+# The training data tree (the Hub download); only the layout description is tracked.
+data/*
+!data/README.md
+# Benchmark data: never redistributed, never in git.
+eval_data
+
+# Run outputs
+results/
+logs/
+
+# OS / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/

@@ -1,0 +1,57 @@
+# Stage A: align the DINOv3 delay tower with the frozen language model on captions.
+# Paths are relative to the repository root.
+model_path: artifacts/models/Qwen3-VL-8B-Instruct
+output_dir: artifacts/checkpoints/stageA_dual8b
+
+unified_sources:
+  - {type: catsbench, split: train}                                                                                                            # 15,995
+  - {type: chatts_style_captions, path: data/stageA/chatts_style_captions.jsonl, target_field: caption, limit: 32000}
+  - {type: structural_captions, path: data/stageA/structural_captions.json}                                                        # 7,701
+balance_mode: weighted_even
+chart_style: v2
+
+# --- dual tower ---
+dino_model_id: facebook/dinov3-vitl16-pretrain-lvd1689m
+dino_image_size: 256
+dino_patch_size: 16
+dino_spatial_merge_size: 2
+dino_deepstack_indexes: [6, 12, 18]
+dino_freeze_backbone: true
+dino_global_norm: false          # per-series delay normalisation
+dino_lora_on_backbone: true      # LoRA on the DINOv3 backbone (the mergers train full-weight)
+dino_lora_on_lm: false
+dino_freeze_merger: false
+attn_implementation: flash_attention_2   # sdpa if flash-attn is unavailable
+
+max_length: 4096
+
+# --- LoRA (DINOv3 backbone) ---
+lora_r: 64
+lora_alpha: 128
+lora_dropout: 0.05
+lora_target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+freeze_vision: true
+
+# --- optimisation ---
+num_train_epochs: 3
+global_batch_size: 64            # examples per optimizer step; scripts/train.py derives gradient_accumulation_steps
+per_device_train_batch_size: 8   # from it and the GPU count (the paper's runs: 8 x 4 x 2 GPUs)
+gradient_accumulation_steps: 4
+dataloader_num_workers: 8
+learning_rate: 1.0e-4
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+weight_decay: 0.0
+gradient_checkpointing: true
+gc_use_reentrant: false          # must stay false: reentrant checkpointing starves the backbone LoRA of gradients
+bf16: true
+logging_steps: 20
+
+# --- checkpointing ---
+save_strategy: steps
+save_steps: 300
+save_only_model: false           # full (resumable) checkpoints
+rolling_checkpoints: true        # keep only the newest keep_full_checkpoints
+keep_full_checkpoints: 2
+keep_epoch_adapters: false       # Stage A only needs best/ downstream
+seed: 42

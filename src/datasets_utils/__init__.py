@@ -1,0 +1,1 @@
+"""Everything that builds training/eval inputs: source loaders (sources.load_unified_sources -> chatts_data, tsexam_data, reasoning_data, caption_data, catsbench_data), mcq helpers, common schema, prompts and the dual collator (unified_collator: chart rendering + the delay images from src.model.delay_embedding)."""
