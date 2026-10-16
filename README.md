@@ -1,7 +1,7 @@
 # Twice Upon a Time: Complementary Representations for Time-Series Reasoning
 
 <p align="center">
-<a href="#"><img src="https://img.shields.io/badge/arXiv-coming%20soon-b31b1b.svg" alt="arXiv"/></a>
+<a href="https://arxiv.org/abs/2610.22327"><img src="https://img.shields.io/badge/arXiv-2610.22327-b31b1b.svg" alt="arXiv"/></a>
 <a href="https://huggingface.co/SequentialLearning/DualTime-8B"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model-yellow" alt="Model"/></a>
 <a href="https://huggingface.co/datasets/SequentialLearning/DualTime-data"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Data-yellow" alt="Data"/></a>
 </p>
@@ -250,3 +250,19 @@ python scripts/eval.py --kind all
 On Slurm the same steps are `scripts/slurm/submit_train.sh A|B` and
 `scripts/slurm/submit_eval.sh --kind tsexam|tsrb|chatts|all [--stage-a DIR
 --stage-b DIR --label NAME]`; site settings live in `scripts/slurm/slurm.env`.
+
+
+
+## Citation
+
+```bibtex
+@misc{zisling2026twicetime,
+      title={Twice Upon a Time: Complementary Representations for Time-Series Reasoning}, 
+      author={Hedi Zisling and Liran Nochumsohn and Ilan Naiman and Mihir Parmar and Omri Azencot},
+      year={2026},
+      eprint={2610.22327},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2610.22327}, 
+}
+```
